@@ -9,8 +9,6 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-
-
 @Entity
 @Table(name = "item_reports")
 public class ItemReport {
@@ -39,6 +37,6 @@ public class ItemReport {
     @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ItemStatus status;
+    private ItemStatus status = ItemStatus.ACTIVE;
 
 }
