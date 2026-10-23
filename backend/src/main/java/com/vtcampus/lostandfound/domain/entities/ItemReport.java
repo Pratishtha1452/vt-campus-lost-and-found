@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -30,7 +31,12 @@ public class ItemReport {
     @Column(nullable = false, length = 200)
     private String location;
 
+    @Column(nullable = false)
     private LocalDate dateOccurred;
+
+    @Builder.Default
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     private String imageUrl;
 
@@ -38,5 +44,9 @@ public class ItemReport {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ItemStatus status = ItemStatus.ACTIVE;
+
+    @ManyToOne
+    @JoinColumn(name = "reported_by_id", nullable = false)
+    private Users reportedBy;
 
 }
