@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface ItemReportService {
 
-    //creaete a item report
+    //create a item report
     ItemReport createReport(ItemReport itemReport);
 
     //view Reports
