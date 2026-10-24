@@ -1,6 +1,7 @@
 package com.vtcampus.lostandfound.services.impl;
 
 import com.vtcampus.lostandfound.domain.entities.ItemReport;
+import com.vtcampus.lostandfound.domain.entities.ItemStatus;
 import com.vtcampus.lostandfound.domain.entities.ItemType;
 import com.vtcampus.lostandfound.repositories.ItemReportRepository;
 import com.vtcampus.lostandfound.services.ItemReportService;
@@ -41,6 +42,11 @@ public class ItemReportServiceImpl implements ItemReportService {
     @Override
     public ItemReport updateItemReport(Long id, ItemReport itemReport) {
         ItemReport existingReport = itemReportRepository.findById(id).orElseThrow();
+        if (existingReport.getStatus() != ItemStatus.ACTIVE) {
+            throw new IllegalStateException(
+                    "Only active reports can be updated"
+            );
+        }
         existingReport.setTitle(itemReport.getTitle());
         existingReport.setDescription(itemReport.getDescription());
         existingReport.setLocation(itemReport.getLocation());
