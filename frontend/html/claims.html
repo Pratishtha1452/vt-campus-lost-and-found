@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Incoming Claims | Campus Found</title>
+    <link rel="stylesheet" href="../style/claims.css">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="navbar">
+        <a class="brand" href="index.html">CAMPUS <span>FOUND</span></a>
+        <nav>
+            <a href="browse.html">Browse Items</a>
+            <a href="report.html">Report Item</a>
+            <a href="claims.html" class="active">Incoming Claims</a>
+            <button id="logoutBtn" type="button">Log out</button>
+        </nav>
+    </header>
+
+    <main class="page">
+        <section class="intro">
+            <p class="eyebrow">RETURN ITEMS TO THEIR OWNERS</p>
+            <h1>INCOMING <span>CLAIMS.</span></h1>
+            <p>Review messages from people claiming items you reported as found.
+               Approve a claim when you're satisfied that the item belongs to them.</p>
+        </section>
+
+        <section class="claims-panel">
+            <div class="panel-heading">
+                <h2>Claims on your found items</h2>
+                <button id="refreshBtn" type="button" class="refresh-button">
+                    Refresh
+                </button>
+            </div>
+
+            <p id="message" role="status" aria-live="polite">Loading claims...</p>
+            <div id="claimsContainer" class="claims-list"></div>
+        </section>
+    </main>
+
+    <footer>
+        <p>Helping lost items find their way home.</p>
+    </footer>
+
+    <script src="../js/claims.js"></script>
+</body>
+</html>
