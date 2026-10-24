@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report an Item | Campus Lost & Found</title>
+    <link rel="stylesheet" href="../style/report.css">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="navbar">
+        <a class="brand" href="index.html">CAMPUS <span>FOUND</span></a>
+        <nav>
+            <a href="browse.html">Browse Items</a>
+            <a href="report.html" class="active">Report Item</a>
+            <button id="logoutButton" class="logout-button" type="button">Log out</button>
+        </nav>
+    </header>
+
+    <main class="page">
+        <section class="intro">
+            <p class="eyebrow">HELP YOUR CAMPUS COMMUNITY</p>
+            <h1>REPORT AN <span>ITEM.</span></h1>
+            <p>Lost something or found something that belongs to someone else?
+                Share the details so the right person can find it.</p>
+        </section>
+
+        <section class="form-card">
+            <div class="card-heading">
+                <h2>Item details</h2>
+                <p>Fields marked * are required.</p>
+            </div>
+
+            <div id="message" class="message" role="status" aria-live="polite" hidden></div>
+
+            <form id="reportForm">
+                <div class="field">
+                    <label for="type">What are you reporting? *</label>
+                    <select id="type" name="type" required>
+                        <option value="">Choose report type</option>
+                        <option value="LOST">I lost an item</option>
+                        <option value="FOUND">I found an item</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="title">Item name *</label>
+                    <input id="title" name="title" type="text"
+                           maxlength="100" placeholder="e.g. Black water bottle" required>
+                </div>
+
+                <div class="field">
+                    <label for="description">Description *</label>
+                    <textarea id="description" name="description"
+                              maxlength="1000" rows="4"
+                              placeholder="Describe the item, its colour, brand, identifying details, etc."
+                              required></textarea>
+                    <small>Maximum 1000 characters.</small>
+                </div>
+
+                <div class="field">
+                    <label for="location">Location *</label>
+                    <input id="location" name="location" type="text"
+                           maxlength="200" placeholder="e.g. Library, second floor" required>
+                </div>
+
+                <div class="field">
+                    <label for="dateOccurred">Date lost or found *</label>
+                    <input id="dateOccurred" name="dateOccurred" type="date" required>
+                </div>
+
+                <div class="field">
+                    <label for="imageUrl">Image URL <span class="optional">(optional)</span></label>
+                    <input id="imageUrl" name="imageUrl" type="url"
+                           maxlength="500" placeholder="https://example.com/item.jpg">
+                    <small>Provide a publicly accessible image link, if available.</small>
+                </div>
+
+                <div class="form-actions">
+                    <a href="browse.html" class="cancel-button">Cancel</a>
+                    <button id="submitButton" type="submit" class="submit-button">
+                        Submit Report
+                    </button>
+                </div>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <p>Helping lost items find their way home.</p>
+    </footer>
+
+    <script src="../js/report.js"></script>
+</body>
+</html>
