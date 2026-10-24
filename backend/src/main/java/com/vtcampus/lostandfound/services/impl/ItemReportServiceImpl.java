@@ -4,6 +4,7 @@ import com.vtcampus.lostandfound.domain.entities.ItemReport;
 import com.vtcampus.lostandfound.domain.entities.ItemStatus;
 import com.vtcampus.lostandfound.domain.entities.ItemType;
 import com.vtcampus.lostandfound.repositories.ItemReportRepository;
+import com.vtcampus.lostandfound.repositories.UsersRepository;
 import com.vtcampus.lostandfound.services.ItemReportService;
 import org.springframework.stereotype.Service;
 
@@ -14,13 +15,22 @@ import java.util.Optional;
 public class ItemReportServiceImpl implements ItemReportService {
 
     private final ItemReportRepository itemReportRepository;
+    private final UsersRepository usersRepository;
 
-    public ItemReportServiceImpl(ItemReportRepository itemReportRepository){
+    public ItemReportServiceImpl(ItemReportRepository itemReportRepository, UsersRepository usersRepository){
         this.itemReportRepository = itemReportRepository;
+        this.usersRepository = usersRepository;
     }
 
     @Override
     public ItemReport createReport(ItemReport itemReport) {
+        Long reporterId = itemReport.getReportedBy().getId();
+
+        var reporter = usersRepository.findById(reporterId)
+                .orElseThrow(() -> new RuntimeException("Reporter not found"));
+
+        itemReport.setReportedBy(reporter);
+
         return itemReportRepository.save(itemReport);
     }
 
