@@ -4,6 +4,7 @@ import com.vtcampus.lostandfound.domain.entities.Claim;
 import com.vtcampus.lostandfound.domain.entities.ClaimStatus;
 import com.vtcampus.lostandfound.repositories.ClaimRepository;
 import com.vtcampus.lostandfound.repositories.ItemReportRepository;
+import com.vtcampus.lostandfound.repositories.UsersRepository;
 import com.vtcampus.lostandfound.services.ClaimService;
 import org.springframework.stereotype.Service;
 import com.vtcampus.lostandfound.domain.entities.ItemReport;
@@ -18,15 +19,34 @@ public class ClaimServiceImpl implements ClaimService {
 
     private final ClaimRepository claimRepository;
     private final ItemReportRepository itemReportRepository;
+    private final UsersRepository usersRepository;
 
     public ClaimServiceImpl(
             ClaimRepository claimRepository,
-            ItemReportRepository itemReportRepository) {
+            ItemReportRepository itemReportRepository, UsersRepository usersRepository) {
         this.claimRepository = claimRepository;
         this.itemReportRepository = itemReportRepository;
+        this.usersRepository = usersRepository;
     }
     @Override
     public Claim createClaim(Claim claim) {
+        Long itemReportId = claim.getItemReport().getId();
+        Long claimantId = claim.getClaimant().getId();
+
+        ItemReport item = itemReportRepository.findById(itemReportId)
+                .orElseThrow(() -> new RuntimeException("Item report not found"));
+
+        if (item.getStatus() != ItemStatus.ACTIVE) {
+            throw new IllegalStateException("This item is no longer available");
+        }
+
+        var claimant = usersRepository.findById(claimantId)
+                .orElseThrow(() -> new RuntimeException("Claimant not found"));
+
+        claim.setItemReport(item);
+        claim.setClaimant(claimant);
+        claim.setStatus(ClaimStatus.PENDING);
+
         return claimRepository.save(claim);
     }
 
