@@ -5,44 +5,100 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Lost & Found</title>
-  <script src="../js/app.js" defer></script>
+  <title>Campus Lost &amp; Found</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="../style/home.css">
+  <script src="../js/app.js" defer></script>
 </head>
 <body>
-  <div class="bg-container">
-    <img
-      src="../images/backgrounds/bg4.jpg"
-      alt="Illustrated city street"
-      class="bg"
-    >
 
+  <!-- Navigation -->
+  <header class="site-header">
+    <a href="index.html" class="brand" aria-label="Lost and Found home">
+      <span class="brand-name">LOST &amp; FOUND.</span>
+    </a>
 
-<div class="hero-content">
-  <h1 class="typing-title">
-    <span class="typing-text">LOST &amp; FOUND</span><span class="cursor" aria-hidden="true"></span>
-  </h1>
+    <nav class="main-nav" aria-label="Main navigation">
+      <a href="browse.html">Browse</a>
+      <a href="report.html" id="navReport">Report</a>
+      <a href="auth.html" id="navLogin" class="nav-login">Login</a>
 
-  <p class="hero-subtitle">
-    Lost something? Let's bring it back.
-  </p>
+      <a href="profile.html" id="navProfile" class="profile-link"
+         aria-label="Your profile" title="Your profile" hidden>
+        <span class="profile-letter" aria-hidden="true">U</span>
+        <span class="profile-label">Profile</span>
+      </a>
+    </nav>
+  </header>
 
-  <div class="hero-buttons">
-    <button type="button" id="reportBtn" class="hero-btn primary-btn">
-      Report an Item
-    </button>
+  <!-- Hero -->
+  <main>
+    <section class="bg-container" aria-label="Campus lost and found">
+      <img
+        src="../images/backgrounds/bg4.jpg"
+        alt=""
+        class="bg"
+      >
 
-    <button type="button" id="browseBtn" class="hero-btn secondary-btn">
-      Browse Items
-    </button>
-  </div>
-</div>
+      <div class="hero-content">
+        <h1 class="typing-title">
+          <span class="typing-text">LOST &amp; FOUND</span><span class="cursor" aria-hidden="true"></span>
+        </h1>
 
-  </div>
+        <p class="hero-subtitle">
+          Lost something? Let's bring it back.
+        </p>
+
+        <div class="hero-buttons">
+          <button type="button" id="reportBtn" class="hero-btn primary-btn">
+            Report an Item
+          </button>
+
+          <button type="button" id="browseBtn" class="hero-btn secondary-btn">
+            Browse Items
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Intro section below the hero -->
+    <section class="discover-section">
+      <div class="section-heading">
+        <p class="section-eyebrow">THE CAMPUS COMMUNITY</p>
+        <h2>Find what's missing.</h2>
+        <p>Browse reported items or help someone reunite with theirs.</p>
+      </div>
+
+      <div class="category-grid">
+        <a href="browse.html?type=lost" class="category-card">
+          <span class="category-number">01 / LOST</span>
+          <span class="category-title">Lost items</span>
+          <span class="category-description">
+            Looking for something you've misplaced?
+          </span>
+          <span class="category-arrow" aria-hidden="true">↗</span>
+        </a>
+
+        <a href="browse.html?type=found" class="category-card">
+          <span class="category-number">02 / FOUND</span>
+          <span class="category-title">Found items</span>
+          <span class="category-description">
+            Help return a found item to its owner.
+          </span>
+          <span class="category-arrow" aria-hidden="true">↗</span>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span>LOST &amp; FOUND</span>
+  </footer>
+
 </body>
 </html>

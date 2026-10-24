@@ -20,3 +20,18 @@ reportBtn?.addEventListener("click", () => {
 browseBtn?.addEventListener("click", () => {
   window.location.href = htmlPath + "browse.html";
 });
+
+
+const navLogin = document.getElementById("navLogin");
+const navProfile = document.getElementById("navProfile");
+const navReport = document.getElementById("navReport");
+
+const hasToken = Boolean(sessionStorage.getItem("token"));
+
+if (hasToken) {
+  if (navLogin) navLogin.hidden = true;
+  if (navProfile) navProfile.hidden = false;
+} else {
+  if (navLogin) navLogin.hidden = false;
+  if (navProfile) navProfile.hidden = true;
+}
