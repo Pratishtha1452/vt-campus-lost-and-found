@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import com.vtcampus.lostandfound.domain.entities.ItemReport;
 import com.vtcampus.lostandfound.domain.entities.ItemStatus;
 import com.vtcampus.lostandfound.repositories.ItemReportRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -65,6 +66,7 @@ public class ClaimServiceImpl implements ClaimService {
         return claimRepository.findByStatus(status);
     }
 
+    @Transactional
     @Override
     public Claim updateClaimStatus(Long id, ClaimStatus status) {
         Claim existingClaim = claimRepository.findById(id)
