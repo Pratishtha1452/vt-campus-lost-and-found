@@ -39,15 +39,17 @@ public class ClaimServiceImpl implements ClaimService {
         Long itemReportId = claim.getItemReport().getId();
 
         ItemReport item = itemReportRepository.findById(itemReportId)
-                .orElseThrow(() -> new RuntimeException("Item report not found"));
+                .orElseThrow(() ->
+                        new RuntimeException("Item report not found"));
 
         if (item.getStatus() != ItemStatus.ACTIVE) {
-            throw new IllegalStateException("This item is no longer available");
+            throw new IllegalStateException(
+                    "This item is no longer available");
         }
 
-        // Users cannot create claims on their own reports.
         if (item.getReportedBy().getId().equals(currentUser.getId())) {
-            throw new IllegalStateException("You cannot claim your own report");
+            throw new IllegalStateException(
+                    "You cannot claim your own report");
         }
 
         claim.setItemReport(item);
@@ -60,41 +62,63 @@ public class ClaimServiceImpl implements ClaimService {
 
     @Override
     public List<Claim> viewAllClaims() {
-        return claimRepository.findAll();
+        var currentUser = currentUserService.getCurrentUser();
+
+        return claimRepository.findAll().stream()
+                .filter(claim ->
+                        claim.getClaimant().getId().equals(currentUser.getId())
+                                || claim.getItemReport().getReportedBy()
+                                .getId().equals(currentUser.getId()))
+                .toList();
     }
 
     @Override
     public Optional<Claim> viewClaimById(Long id) {
-        return claimRepository.findById(id);
+        var currentUser = currentUserService.getCurrentUser();
+
+        return claimRepository.findById(id)
+                .filter(claim ->
+                        claim.getClaimant().getId().equals(currentUser.getId())
+                                || claim.getItemReport().getReportedBy()
+                                .getId().equals(currentUser.getId()));
     }
 
     @Override
     public List<Claim> viewClaimsByStatus(ClaimStatus status) {
-        return claimRepository.findByStatus(status);
+        var currentUser = currentUserService.getCurrentUser();
+
+        return claimRepository.findByStatus(status).stream()
+                .filter(claim ->
+                        claim.getClaimant().getId().equals(currentUser.getId())
+                                || claim.getItemReport().getReportedBy()
+                                .getId().equals(currentUser.getId()))
+                .toList();
     }
 
     @Transactional
     @Override
     public Claim updateClaimStatus(Long id, ClaimStatus status) {
         Claim existingClaim = claimRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Claim not found"));
+                .orElseThrow(() ->
+                        new RuntimeException("Claim not found"));
 
         var currentUser = currentUserService.getCurrentUser();
         ItemReport item = existingClaim.getItemReport();
 
-        // Only the person who posted the item can decide the claim.
         if (!item.getReportedBy().getId().equals(currentUser.getId())) {
             throw new AccessDeniedException(
                     "You cannot update claims on someone else's report");
         }
 
         if (existingClaim.getStatus() != ClaimStatus.PENDING) {
-            throw new IllegalStateException("Only pending claims can be updated");
+            throw new IllegalStateException(
+                    "Only pending claims can be updated");
         }
 
         if (status == ClaimStatus.APPROVED) {
             if (item.getStatus() != ItemStatus.ACTIVE) {
-                throw new IllegalStateException("This item is no longer available");
+                throw new IllegalStateException(
+                        "This item is no longer available");
             }
 
             item.setStatus(ItemStatus.CLAIMED);
@@ -108,16 +132,20 @@ public class ClaimServiceImpl implements ClaimService {
     @Override
     public void deleteClaim(Long id) {
         Claim claim = claimRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Claim not found"));
+                .orElseThrow(() ->
+                        new RuntimeException("Claim not found"));
 
         var currentUser = currentUserService.getCurrentUser();
 
-        boolean isClaimant = claim.getClaimant().getId().equals(currentUser.getId());
+        boolean isClaimant = claim.getClaimant().getId()
+                .equals(currentUser.getId());
+
         boolean isReporter = claim.getItemReport().getReportedBy()
                 .getId().equals(currentUser.getId());
 
         if (!isClaimant && !isReporter) {
-            throw new AccessDeniedException("You cannot delete this claim");
+            throw new AccessDeniedException(
+                    "You cannot delete this claim");
         }
 
         claimRepository.delete(claim);
