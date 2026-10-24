@@ -5,7 +5,6 @@ import com.vtcampus.lostandfound.domain.dto.ClaimRequest;
 import com.vtcampus.lostandfound.domain.dto.ClaimResponse;
 import com.vtcampus.lostandfound.domain.entities.Claim;
 import com.vtcampus.lostandfound.domain.entities.ItemReport;
-import com.vtcampus.lostandfound.domain.entities.Users;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -16,15 +15,12 @@ public class ClaimMapper {
 
         claim.setMessage(request.getMessage());
 
-        // Set references using the IDs from the request.
+        // Set the item reference; the service verifies it exists.
         ItemReport itemReport = new ItemReport();
         itemReport.setId(request.getItemReportId());
         claim.setItemReport(itemReport);
 
-        Users claimant = new Users();
-        claimant.setId(request.getClaimantId());
-        claim.setClaimant(claimant);
-
+        // The service assigns the authenticated user as claimant.
         return claim;
     }
 

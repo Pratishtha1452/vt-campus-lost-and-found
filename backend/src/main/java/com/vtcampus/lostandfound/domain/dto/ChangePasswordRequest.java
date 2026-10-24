@@ -1,3 +1,4 @@
+
 package com.vtcampus.lostandfound.domain.dto;
 
 import jakarta.validation.constraints.NotBlank;
@@ -7,10 +8,14 @@ import lombok.Data;
 @Data
 public class ChangePasswordRequest {
 
-    @NotBlank
+    @NotBlank(message = "Current password is required")
     private String currentPassword;
 
-    @NotBlank
-    @Size(min = 8, max = 72, message = "Password must be at least 8 characters")
+    @NotBlank(message = "New password is required")
+    @Size(
+            min = 8,
+            max = 72,
+            message = "New password must be between 8 and 72 characters"
+    )
     private String newPassword;
 }

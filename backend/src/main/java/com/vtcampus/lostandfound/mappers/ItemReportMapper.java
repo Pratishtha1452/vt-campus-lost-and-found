@@ -4,7 +4,6 @@ package com.vtcampus.lostandfound.mappers;
 import com.vtcampus.lostandfound.domain.dto.ItemReportRequest;
 import com.vtcampus.lostandfound.domain.dto.ItemReportResponse;
 import com.vtcampus.lostandfound.domain.entities.ItemReport;
-import com.vtcampus.lostandfound.domain.entities.Users;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -20,11 +19,7 @@ public class ItemReportMapper {
         report.setDateOccurred(request.getDateOccurred());
         report.setImageUrl(request.getImageUrl());
 
-        // Create a reference to the reporter using their ID.
-        Users reporter = new Users();
-        reporter.setId(request.getReportedById());
-        report.setReportedBy(reporter);
-
+        // The service assigns the authenticated user as the reporter.
         return report;
     }
 
