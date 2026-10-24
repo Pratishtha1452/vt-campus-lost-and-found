@@ -1,4 +1,5 @@
 const API_URL = "http://localhost:8080/api/reports";
+const CLAIM_API_URL = "http://localhost:8080/api/claims";
 
 const reportsContainer = document.getElementById("reportsContainer");
 const searchInput = document.getElementById("searchInput");
@@ -86,24 +87,134 @@ function renderReports() {
         title.textContent = report.title || "Untitled item";
 
         const description = document.createElement("p");
-        description.textContent = report.description || "No description provided.";
+        description.textContent =
+            report.description || "No description provided.";
 
         const location = document.createElement("p");
-        location.textContent = `Location: ${report.location || "Not specified"}`;
+        location.textContent =
+            `Location: ${report.location || "Not specified"}`;
 
         const date = document.createElement("p");
-        date.textContent = `Date: ${report.dateOccurred || "Not specified"}`;
+        date.textContent =
+            `Date: ${report.dateOccurred || "Not specified"}`;
 
         const reporter = document.createElement("p");
-        reporter.textContent = `Reported by: ${report.reportedByName || "Campus user"}`;
+        reporter.textContent =
+            `Reported by: ${report.reportedByName || "Campus user"}`;
 
         const status = document.createElement("p");
         status.textContent = `Status: ${report.status || "Unknown"}`;
 
-        content.append(type, title, description, location, date, reporter, status);
+        content.append(
+            type,
+            title,
+            description,
+            location,
+            date,
+            reporter,
+            status
+        );
+
+        // Only found items can be claimed through this button.
+        if (report.type === "FOUND") {
+            const claimButton = document.createElement("button");
+            claimButton.type = "button";
+            claimButton.className = "claim-button";
+            claimButton.textContent = "Claim Item";
+
+            claimButton.addEventListener("click", () => {
+                submitClaim(report, claimButton);
+            });
+
+            content.appendChild(claimButton);
+        }
+
         card.appendChild(content);
         reportsContainer.appendChild(card);
     });
+}
+
+async function submitClaim(report, claimButton) {
+    const token = sessionStorage.getItem("token");
+
+    if (!token) {
+        sessionStorage.setItem("redirectAfterLogin", "browse.html");
+        window.location.href = "auth.html";
+        return;
+    }
+
+    const userText = prompt(
+        `Why are you claiming "${report.title}"?\n\n` +
+        "Describe identifying details that can help verify it belongs to you:"
+    );
+
+    // Cancel was clicked.
+    if (userText === null) {
+        return;
+    }
+
+    const claimMessage = userText.trim();
+
+    if (!claimMessage) {
+        alert("Please enter a claim message.");
+        return;
+    }
+
+    if (claimMessage.length > 1000) {
+        alert("Your claim message must not exceed 1000 characters.");
+        return;
+    }
+
+    claimButton.disabled = true;
+    claimButton.textContent = "Submitting...";
+
+    try {
+        const response = await fetch(CLAIM_API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                itemReportId: report.id,
+                message: claimMessage
+            })
+        });
+
+        const result = await response.json().catch(() => null);
+
+        if (response.status === 401 || response.status === 403) {
+            alert("Your session may have expired. Please log in again.");
+            sessionStorage.removeItem("token");
+            sessionStorage.removeItem("tokenType");
+            sessionStorage.removeItem("user");
+            sessionStorage.setItem("redirectAfterLogin", "browse.html");
+            window.location.href = "auth.html";
+            return;
+        }
+
+        if (!response.ok) {
+            const errorText =
+                result?.message ||
+                result?.detail ||
+                result?.error ||
+                `Could not submit claim (${response.status}).`;
+
+            alert(errorText);
+            return;
+        }
+
+        alert("Your claim was submitted successfully.");
+
+    } catch (error) {
+        console.error("Claim submission failed:", error);
+        alert(
+            "Could not connect to the server. Check that the backend is running."
+        );
+    } finally {
+        claimButton.disabled = false;
+        claimButton.textContent = "Claim Item";
+    }
 }
 
 searchBtn.addEventListener("click", renderReports);
