@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -35,7 +36,8 @@ public class SecurityConfig {
 
         configuration.setAllowedOrigins(List.of(
                 "http://127.0.0.1:5500",
-                "http://localhost:5500"
+                "http://localhost:5500",
+                "https://vt-campus-lost-and-found-frontend.onrender.com"
         ));
 
         configuration.setAllowedMethods(List.of(
@@ -74,6 +76,14 @@ public class SecurityConfig {
                                 "/error",
                                 "/api/users/register",
                                 "/api/auth/**"
+                        ).permitAll()
+                        .requestMatchers(
+                                HttpMethod.OPTIONS, "/**"
+                        ).permitAll()
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/reports",
+                                "/api/reports/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
