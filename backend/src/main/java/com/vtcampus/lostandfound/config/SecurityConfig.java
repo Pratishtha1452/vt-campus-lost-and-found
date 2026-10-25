@@ -1,3 +1,4 @@
+
 package com.vtcampus.lostandfound.config;
 
 import java.util.List;
@@ -69,6 +70,8 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+                                "/",
+                                "/error",
                                 "/api/users/register",
                                 "/api/auth/**"
                         ).permitAll()
