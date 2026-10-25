@@ -1,4 +1,6 @@
-const API_BASE = "http://localhost:8080/api";
+
+const API_BASE =
+    "https://vt-campus-lost-and-found.onrender.com/api";
 
 const claimsContainer = document.getElementById("claimsContainer");
 const message = document.getElementById("message");
@@ -23,6 +25,7 @@ function logout() {
     sessionStorage.removeItem("tokenType");
     sessionStorage.removeItem("user");
     sessionStorage.removeItem("redirectAfterLogin");
+
     window.location.href = "auth.html";
 }
 
@@ -40,6 +43,10 @@ function addTextElement(parent, tag, text, className = "") {
 
 async function apiFetch(url, options = {}) {
     const token = getToken();
+
+    if (!token) {
+        throw new Error("AUTH");
+    }
 
     const response = await fetch(url, {
         ...options,
@@ -82,23 +89,29 @@ async function loadClaims() {
             reportsResponse.json()
         ]);
 
+        if (!Array.isArray(claims) || !Array.isArray(reports)) {
+            throw new Error("The server returned an unexpected response.");
+        }
+
         const currentUserId = getCurrentUserId();
 
         if (currentUserId == null) {
             message.textContent =
-                "Your user details are missing from this session. Log out and log in again.";
+                "Your user details are missing. Please log out and log in again.";
             return;
         }
 
+        // Identify found reports created by the current user.
         const ownFoundReportIds = new Set(
             reports
                 .filter(report =>
-                    report.type === "FOUND" &&
+                    String(report.type || "").toUpperCase() === "FOUND" &&
                     String(report.reportedById) === String(currentUserId)
                 )
                 .map(report => String(report.id))
         );
 
+        // Display claims on the current user's found reports.
         const incomingClaims = claims.filter(claim =>
             ownFoundReportIds.has(String(claim.itemReportId))
         );
@@ -106,7 +119,7 @@ async function loadClaims() {
         renderClaims(incomingClaims);
 
     } catch (error) {
-        console.error(error);
+        console.error("Loading claims failed:", error);
 
         if (error.message === "AUTH") {
             message.textContent =
@@ -114,7 +127,7 @@ async function loadClaims() {
             setTimeout(logout, 1200);
         } else {
             message.textContent =
-                "Could not load incoming claims. Check the backend and try refreshing.";
+                "Could not load incoming claims. Please try refreshing.";
         }
     } finally {
         refreshBtn.disabled = false;
@@ -147,12 +160,15 @@ function renderClaims(claims) {
         addTextElement(
             card,
             "p",
-            `Submitted: ${claim.createdAt
-                ? new Date(claim.createdAt).toLocaleString()
-                : "Date unavailable"}`
+            `Submitted: ${
+                claim.createdAt
+                    ? new Date(claim.createdAt).toLocaleString()
+                    : "Date unavailable"
+            }`
         );
 
         addTextElement(card, "p", "Claim message:");
+
         addTextElement(
             card,
             "p",
@@ -160,15 +176,16 @@ function renderClaims(claims) {
             "claim-message"
         );
 
-        const status = String(claim.status || "UNKNOWN").toLowerCase();
+        const claimStatus = String(claim.status || "UNKNOWN").toUpperCase();
+
         addTextElement(
             card,
             "span",
-            String(claim.status || "UNKNOWN"),
-            `claim-status ${status}`
+            claimStatus,
+            `claim-status ${claimStatus.toLowerCase()}`
         );
 
-        if (claim.status === "PENDING") {
+        if (claimStatus === "PENDING") {
             const actions = document.createElement("div");
             actions.className = "claim-actions";
 
@@ -182,13 +199,13 @@ function renderClaims(claims) {
             rejectBtn.className = "reject-button";
             rejectBtn.textContent = "Reject";
 
-            approveBtn.addEventListener("click", () =>
-                updateClaimStatus(claim, "APPROVED", approveBtn, rejectBtn)
-            );
+            approveBtn.addEventListener("click", () => {
+                updateClaimStatus(claim, "APPROVED", approveBtn, rejectBtn);
+            });
 
-            rejectBtn.addEventListener("click", () =>
-                updateClaimStatus(claim, "REJECTED", approveBtn, rejectBtn)
-            );
+            rejectBtn.addEventListener("click", () => {
+                updateClaimStatus(claim, "REJECTED", approveBtn, rejectBtn);
+            });
 
             actions.append(approveBtn, rejectBtn);
             card.appendChild(actions);
@@ -210,7 +227,7 @@ async function updateClaimStatus(claim, status, approveBtn, rejectBtn) {
 
     try {
         const response = await apiFetch(
-            `${API_BASE}/claims/${claim.id}/status?status=${status}`,
+            `${API_BASE}/claims/${claim.id}/status?status=${encodeURIComponent(status)}`,
             { method: "PATCH" }
         );
 
@@ -220,6 +237,7 @@ async function updateClaimStatus(claim, status, approveBtn, rejectBtn) {
             throw new Error(
                 result?.message ||
                 result?.detail ||
+                result?.error ||
                 `Could not update claim (${response.status}).`
             );
         }
@@ -228,15 +246,15 @@ async function updateClaimStatus(claim, status, approveBtn, rejectBtn) {
         await loadClaims();
 
     } catch (error) {
-        console.error(error);
+        console.error("Updating claim failed:", error);
 
         if (error.message === "AUTH") {
             alert("Your session has expired. Please log in again.");
             logout();
-        } else {
-            alert(error.message || "Could not update this claim.");
+            return;
         }
 
+        alert(error.message || "Could not update this claim.");
         approveBtn.disabled = false;
         rejectBtn.disabled = false;
     }

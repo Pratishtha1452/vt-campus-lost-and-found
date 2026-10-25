@@ -1,4 +1,6 @@
-const API_URL = "http://localhost:8080/api/reports";
+
+const API_URL =
+    "https://vt-campus-lost-and-found.onrender.com/api/reports";
 
 const form = document.getElementById("reportForm");
 const message = document.getElementById("message");
@@ -27,13 +29,23 @@ function redirectToLogin() {
     window.location.href = "auth.html";
 }
 
-// Require login before submitting a report.
+function logout() {
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("tokenType");
+    sessionStorage.removeItem("user");
+    sessionStorage.removeItem("redirectAfterLogin");
+
+    window.location.href = "auth.html";
+}
+
+// Require login before using the report form.
 if (!getToken()) {
     redirectToLogin();
 }
 
-// Prevent selecting a future date.
+// Prevent selecting a future date using the local date.
 const today = new Date();
+
 const localToday = [
     today.getFullYear(),
     String(today.getMonth() + 1).padStart(2, "0"),
@@ -42,14 +54,7 @@ const localToday = [
 
 dateInput.max = localToday;
 
-logoutButton.addEventListener("click", () => {
-    sessionStorage.removeItem("token");
-    sessionStorage.removeItem("tokenType");
-    sessionStorage.removeItem("user");
-    sessionStorage.removeItem("redirectAfterLogin");
-
-    window.location.href = "auth.html";
-});
+logoutButton.addEventListener("click", logout);
 
 form.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -73,7 +78,7 @@ form.addEventListener("submit", async (event) => {
         imageUrl: formData.get("imageUrl").trim() || null
     };
 
-    // Check required fields before making the request.
+    // Validate required fields.
     if (
         !report.title ||
         !report.description ||
@@ -85,6 +90,17 @@ form.addEventListener("submit", async (event) => {
         return;
     }
 
+    if (
+        report.dateOccurred > localToday ||
+        !["LOST", "FOUND"].includes(report.type)
+    ) {
+        showMessage(
+            "Please enter a valid report type and date.",
+            "error"
+        );
+        return;
+    }
+
     submitButton.disabled = true;
     submitButton.textContent = "Submitting...";
 
@@ -93,7 +109,7 @@ form.addEventListener("submit", async (event) => {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
+                Authorization: `Bearer ${token}`
             },
             body: JSON.stringify(report)
         });
@@ -141,7 +157,7 @@ form.addEventListener("submit", async (event) => {
         console.error("Report submission failed:", error);
 
         showMessage(
-            "Could not connect to the server. Make sure your Spring Boot backend is running.",
+            "Could not connect to the server. Please check your internet connection or try again later.",
             "error"
         );
     } finally {

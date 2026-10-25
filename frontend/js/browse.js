@@ -1,5 +1,9 @@
-const API_URL = "http://localhost:8080/api/reports";
-const CLAIM_API_URL = "http://localhost:8080/api/claims";
+
+const API_URL =
+    "https://vt-campus-lost-and-found.onrender.com/api/reports";
+
+const CLAIM_API_URL =
+    "https://vt-campus-lost-and-found.onrender.com/api/claims";
 
 const reportsContainer = document.getElementById("reportsContainer");
 const searchInput = document.getElementById("searchInput");
@@ -10,12 +14,33 @@ const logoutBtn = document.getElementById("logoutBtn");
 
 let reports = [];
 
+// Apply the item type requested by the homepage URL.
+const params = new URLSearchParams(window.location.search);
+const requestedType = (params.get("type") || "").toUpperCase();
+
+if (requestedType === "LOST" || requestedType === "FOUND") {
+    typeFilter.value = requestedType;
+}
+
+function getToken() {
+    return sessionStorage.getItem("token");
+}
+
+function logout() {
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("tokenType");
+    sessionStorage.removeItem("user");
+    sessionStorage.removeItem("redirectAfterLogin");
+
+    window.location.href = "auth.html";
+}
+
 async function loadReports() {
     message.textContent = "Loading reports...";
     reportsContainer.replaceChildren();
 
     try {
-        const token = sessionStorage.getItem("token");
+        const token = getToken();
 
         const response = await fetch(API_URL, {
             headers: token
@@ -27,12 +52,19 @@ async function loadReports() {
             throw new Error(`Could not load reports (${response.status}).`);
         }
 
-        reports = await response.json();
+        const data = await response.json();
+
+        if (!Array.isArray(data)) {
+            throw new Error("The server returned an unexpected reports response.");
+        }
+
+        reports = data;
         renderReports();
     } catch (error) {
+        console.error("Loading reports failed:", error);
+
         message.textContent =
-            "Could not load reports. Check that the backend is running and you are logged in.";
-        console.error(error);
+            "Could not load reports. Please try refreshing the page.";
     }
 }
 
@@ -41,13 +73,18 @@ function renderReports() {
     const selectedType = typeFilter.value;
 
     const filteredReports = reports.filter(report => {
+        const title = (report.title || "").toLowerCase();
+        const description = (report.description || "").toLowerCase();
+        const location = (report.location || "").toLowerCase();
+
         const matchesSearch =
-            (report.title || "").toLowerCase().includes(query) ||
-            (report.description || "").toLowerCase().includes(query) ||
-            (report.location || "").toLowerCase().includes(query);
+            title.includes(query) ||
+            description.includes(query) ||
+            location.includes(query);
 
         const matchesType =
-            selectedType === "ALL" || report.type === selectedType;
+            selectedType === "ALL" ||
+            String(report.type || "").toUpperCase() === selectedType;
 
         return matchesSearch && matchesType;
     });
@@ -72,6 +109,7 @@ function renderReports() {
             image.src = report.imageUrl;
             image.alt = report.title || "Reported item";
             image.className = "report-image";
+
             image.addEventListener("error", () => image.remove());
             card.appendChild(image);
         }
@@ -80,7 +118,8 @@ function renderReports() {
         content.className = "report-content";
 
         const type = document.createElement("span");
-        type.className = `type-badge ${String(report.type || "").toLowerCase()}`;
+        type.className =
+            `type-badge ${String(report.type || "").toLowerCase()}`;
         type.textContent = report.type || "ITEM";
 
         const title = document.createElement("h2");
@@ -115,8 +154,8 @@ function renderReports() {
             status
         );
 
-        // Only found items can be claimed through this button.
-        if (report.type === "FOUND") {
+        // Only found items can be claimed.
+        if (String(report.type || "").toUpperCase() === "FOUND") {
             const claimButton = document.createElement("button");
             claimButton.type = "button";
             claimButton.className = "claim-button";
@@ -135,7 +174,7 @@ function renderReports() {
 }
 
 async function submitClaim(report, claimButton) {
-    const token = sessionStorage.getItem("token");
+    const token = getToken();
 
     if (!token) {
         sessionStorage.setItem("redirectAfterLogin", "browse.html");
@@ -148,7 +187,6 @@ async function submitClaim(report, claimButton) {
         "Describe identifying details that can help verify it belongs to you:"
     );
 
-    // Cancel was clicked.
     if (userText === null) {
         return;
     }
@@ -173,7 +211,7 @@ async function submitClaim(report, claimButton) {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
+                Authorization: `Bearer ${token}`
             },
             body: JSON.stringify({
                 itemReportId: report.id,
@@ -185,32 +223,23 @@ async function submitClaim(report, claimButton) {
 
         if (response.status === 401 || response.status === 403) {
             alert("Your session may have expired. Please log in again.");
-            sessionStorage.removeItem("token");
-            sessionStorage.removeItem("tokenType");
-            sessionStorage.removeItem("user");
-            sessionStorage.setItem("redirectAfterLogin", "browse.html");
-            window.location.href = "auth.html";
+            logout();
             return;
         }
 
         if (!response.ok) {
-            const errorText =
+            throw new Error(
                 result?.message ||
                 result?.detail ||
                 result?.error ||
-                `Could not submit claim (${response.status}).`;
-
-            alert(errorText);
-            return;
+                `Could not submit claim (${response.status}).`
+            );
         }
 
         alert("Your claim was submitted successfully.");
-
     } catch (error) {
         console.error("Claim submission failed:", error);
-        alert(
-            "Could not connect to the server. Check that the backend is running."
-        );
+        alert(error.message || "Could not connect to the server.");
     } finally {
         claimButton.disabled = false;
         claimButton.textContent = "Claim Item";
@@ -220,14 +249,6 @@ async function submitClaim(report, claimButton) {
 searchBtn.addEventListener("click", renderReports);
 searchInput.addEventListener("input", renderReports);
 typeFilter.addEventListener("change", renderReports);
-
-logoutBtn.addEventListener("click", () => {
-    sessionStorage.removeItem("token");
-    sessionStorage.removeItem("tokenType");
-    sessionStorage.removeItem("user");
-    sessionStorage.removeItem("redirectAfterLogin");
-
-    window.location.href = "auth.html";
-});
+logoutBtn.addEventListener("click", logout);
 
 loadReports();

@@ -254,3 +254,17 @@ footer {
         align-items: flex-start;
     }
 }
+
+/* Visible focus for keyboard navigation */
+a:focus-visible,
+button:focus-visible {
+    outline: 3px solid var(--amber);
+    outline-offset: 3px;
+}
+
+/* Keep disabled controls visibly inactive */
+.refresh-button:disabled,
+.navbar button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
